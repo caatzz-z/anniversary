@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title> [🥂] anniversary ! </title>
+
+<style>
+body {
+    margin: 0;
+    overflow: hidden;
+    font-family: "Poppins", sans-serif;
+    background: linear-gradient(135deg, #b95bff, #ff6e8f, #ff79e2);
+    background-size: 300% 300%;
+    animation: bgShift 12s alternate infinite;
+}
+@keyframes bgShift {
+    0% { background-position: left; }
+    100% { background-position: right; }
+}
+
+#glitterCanvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+}
+
+.title-box {
+    text-align: center;
+    margin-top: 40px;
+    color: white;
+}
+.title-box h1 {
+    font-size: 55px;
+    text-shadow: 0 0 15px purple, 0 0 15px red;
+}
+
+button {
+    padding: 15px 35px;
+    font-size: 20px;
+    background: white;
+    border: none;
+    border-radius: 30px;
+    color: purple;
+    cursor: pointer;
+    box-shadow: 0 0 15px rgba(255, 0, 150, 0.7);
+}
+button:hover {
+    transform: scale(1.05);
+}
+
+.heart {
+    position: absolute;
+    font-size: 40px;
+    color: white;
+    opacity: 0.6;
+    animation: floatUp 7s infinite linear;
+}
+.heart:nth-child(1) { left: 10%; animation-delay: 0s; }
+.heart:nth-child(2) { left: 50%; animation-delay: 2s; }
+.heart:nth-child(3) { left: 80%; animation-delay: 1s; }
+
+@keyframes floatUp {
+    0% { top: 100%; opacity: 0; }
+    40% { opacity: 1; }
+    100% { top: -10%; opacity: 0; }
+}
+
+.polaroid {
+    position: absolute;
+    background: white;
+    padding: 12px;
+    width: 200px;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    opacity: 0;
+    transform-origin: center;
+    animation: fadeIn 1s forwards;
+}
+.polaroid img {
+    width: 100%;
+    border-radius: 5px;
+    display: block;
+}
+.caption {
+    text-align: center;
+    color: purple;
+    margin-top: 6px;
+    font-weight: bold;
+    font-size: 14px;
+}
+@keyframes fadeIn {
+    to { opacity: 1; transform: scale(1); }
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="glitterCanvas"></canvas>
+
+<audio id="bgMusic" src="music/softmusic.mp3"></audio>
+
+<div class="heart">❤</div>
+<div class="heart">❤</div>
+<div class="heart">❤</div>
+
+<div class="title-box">
+    <h1>HAPPY ANNIVERSARY MOMMY AND DADDYY !!</h1>
+    <p>a small (and rushed) web i made for you both ❤️‍🩹 <br>
+    click the button below to start the surprise !</p>
+    <button id="showImagesBtn"> CLICK MEEEEE </button>
+</div>
+
+<div id="imageContainer"></div>
+
+<script>
+(function () {
+    const btn = document.getElementById("showImagesBtn");
+    const music = document.getElementById("bgMusic");
+    const container = document.getElementById("imageContainer");
+
+    const totalImages = 10;
+    const captionText = "𝜗ৎ♡⋆. 𐙚 ˚⋆˚꩜｡";
+    let currentIndex = 1;
+    let revealIntervalId = null;
+
+    function clearReveal() {
+        if (revealIntervalId !== null) {
+            clearInterval(revealIntervalId);
+            revealIntervalId = null;
+        }
+    }
+
+    function createAndAppendFrame(i) {
+        const frame = document.createElement("div");
+        frame.className = "polaroid";
+        const maxX = Math.max(window.innerWidth - 220, 0);
+        const maxY = Math.max(window.innerHeight - 220, 0);
+        frame.style.left = Math.random() * maxX + "px";
+        frame.style.top = Math.random() * maxY + "px";
+
+        const rot = (Math.random() * 20) - 10;
+        frame.style.transform = `rotate(${rot}deg) scale(0.95)`;
+
+        const img = document.createElement("img");
+        img.src = `images/anniversary${i}.jpg`;
+        img.alt = captionText;
+
+        img.addEventListener("error", () => {
+            if (frame.parentNode) frame.parentNode.removeChild(frame);
+        });
+
+        const caption = document.createElement("div");
+        caption.className = "caption";
+        caption.textContent = captionText;
+
+        frame.appendChild(img);
+        frame.appendChild(caption);
+        container.appendChild(frame);
+    }
+
+    function revealNext() {
+        if (currentIndex > totalImages) {
+            clearReveal();
+            return;
+        }
+        createAndAppendFrame(currentIndex);
+        currentIndex++;
+    }
+
+    btn.addEventListener("click", () => {
+        clearReveal();
+        container.innerHTML = "";
+        currentIndex = 1;
+
+        const playPromise = music.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(() => {
+            });
+        }
+
+        revealNext();
+        revealIntervalId = setInterval(revealNext, 2000);
+    });
+
+    const canvas = document.getElementById("glitterCanvas");
+    const ctx = canvas && canvas.getContext ? canvas.getContext("2d") : null;
+
+    function resize() {
+        if (!canvas) return;
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener("resize", resize);
+
+    let particles = [];
+    if (canvas && ctx) {
+        particles = [];
+        for (let i = 0; i < 150; i++) {
+            particles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                size: Math.random() * 3 + 1,
+                speed: Math.random() * 0.6 + 0.2,
+                opacity: Math.random() * 0.9 + 0.1
+            });
+        }
+
+        function glitter() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                ctx.beginPath();
+                ctx.fillStyle = `rgba(255,255,255,${p.opacity})`;
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+
+                p.y += p.speed;
+                if (p.y > canvas.height) {
+                    p.y = -5;
+                    p.x = Math.random() * canvas.width;
+                }
+            });
+            requestAnimationFrame(glitter);
+        }
+        requestAnimationFrame(glitter);
+    }
+})();
+</script>
+
+</body>
+</html>
